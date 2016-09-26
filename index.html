@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="utf-8"/>      
+  <link rel="stylesheet" type="text/css" href="style.css">    
+ </head>
+ <body>
+  <div id="container">       
+    <canvas id="canvas" width="1000" height="1000"></canvas>   
+  </div>    
+ </body>
+ <script type="application/javascript">   
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");    
+    ctx.fillStyle = "#333";    
+    ctx.fillRect (0, 0, 1000, 1000);                      
+    
+    //initializing board array - fill it randomly with 0 and 1
+    function initBoard(){
+    	var board = new Array(100);
+    	for(var x=0; x<100; x++){
+    		board[x]=new Array(100);
+    		for(var y=0; y<100; y++){    			
+    			//value 0.45 - is good for cave 'shape'
+    			board[x][y]=Math.random()<0.45?1:0;    
+    		}
+    	}
+    	return board;
+    }
+
+    //in here we reassign our board array with the rules:
+    //look at the 8 neighbours: the neighbour with value 1 or 2 - is alive else - is dead
+    // - if the cell is alive and has < 4 alive neighbours  - the cell dies.
+    // - if the cell is dead and has > 3 alive neighbours - the cell becomes alive.
+    function getNextGeneration(board){
+    	//in here we store next generation board
+		var nextBoard=[];
+		for (var i = 0; i < board.length; i++)
+			nextBoard.push(board[i].slice(0)); 
+		
+        for(var i=0; i<nextBoard.length; i++){
+          for(var j=0; j<nextBoard[i].length; j++){            
+
+            //analize neighbour cells
+            var count=0;
+            if(board[i][j]==1)
+              nextBoard[i][j]=2;
+
+            for(var m=i-1; m<=i+1; m++){
+              for(var n=j-1; n<=j+1; n++){
+                if(m===i&&n===j){                  
+                  continue;
+                }
+
+                var row=m;
+                var col=n;
+                //we looking out of the array's bounds
+                if(m>=board.length||m<0)
+                  continue;
+              	//we looking out of the array's bounds
+                else if(n>=board[0].length||n<0)
+                  continue;
+
+                else if(board[row][col]>0){                                    
+                  count++;              
+                }
+              }
+            }  
+            //the cell is alive        
+            if(board[i][j]){                
+            	if(count<4)
+                    //the cell dies
+            		nextBoard[i][j]=0;
+            	else 
+                    //the cell alive
+            		nextBoard[i][j]=1;
+            } 
+            //dead cell       
+            else{
+            	if(count>3)
+                    //now it's alive
+            		nextBoard[i][j]=1;
+            	else
+                    //dead cell
+            		nextBoard[i][j]=0;
+            }                  
+          }
+        }           
+        return nextBoard;
+    }
+
+	//flooding the array and remove all isolated areas
+    function floodFill(boardParam,x, y){	    
+    	var board = new Array(100);
+    	for(var i=0; i<100; i++){
+    		board[i]=boardParam[i].slice(0);
+    	}
+
+	    var width = 100;
+	    var height = 100;
+	    var stack = [[x, y]];
+	    var cell;
+	    var point = 0;
+        //this is to measure volume of the cave
+	    var counter=0;
+	    while (stack.length > 0)
+	    {   
+	        cell = stack.pop();
+	        var x=cell[0];
+	        var y=cell[1];
+	        //index out of bound
+	        if (x < 0 || x >= width)
+	            continue;
+	        if (y < 0 || y >= height)
+	            continue;
+	        var value=board[x][y];
+	        if(value===0||value==3)
+	        	continue;    	        	        
+	        else{
+	        	counter++;
+	            // painting
+	            board[x][y] = 3;
+	        	    
+	            // putting the neighbours in the stack to check them
+	            stack.push([
+	                x - 1,
+	                y
+	            ]);
+	            stack.push([
+	                x + 1,
+	                y
+	            ]);
+	            stack.push([
+	                x,
+	                y - 1
+	            ]);
+	            stack.push([
+	                x,
+	                y + 1
+	            ]);	            
+	        }
+	    }	    
+	    return {
+	    	board: board,
+	    	//counter is a 'volume of a cave'
+	    	volume: counter
+	    };
+	}
+
+	function fixBoard(board){
+
+		for(var x=0; x<100; x++){
+			for(var y=0; y<100; y++){
+				var result = floodFill(board, x, y);
+				//we want cave with at least 2000 cells volume
+                //deep enough to make the game more interesting
+				if(result.volume>2000){
+					board=result.board;					
+					return board;
+				}
+			}
+		}
+        //this board doesn't have any cave with enough volume	
+		return null;					
+	}
+
+    //generate game board
+    function generateBoard(){
+    	var board=initBoard();    
+    	for(var i=0;i<2;i++)
+			board = getNextGeneration(board);					
+
+		board = fixBoard(board);		
+
+		for(var x=0; x<100; x++){    					
+    		for(var y=0; y<100; y++){
+    			if(board[x][y]!=3){
+    				ctx.fillStyle = "#000";    	
+    			}
+    			else if(board[x][y]==3){
+    				ctx.fillStyle = "#eee";    	
+    			}
+    			ctx.fillRect (x*10, y*10, 10, 10);       			
+    		}
+    	}
+
+		return board;
+    }    
+
+    var board = generateBoard();	
+  </script>
+</html>
