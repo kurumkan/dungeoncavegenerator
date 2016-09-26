@@ -192,29 +192,36 @@
 		return board;
     }    
 
+    //place tresures at the least accessible places
     function placeTreasure(board, color, treasureHiddenLimit){                
         ctx.fillStyle = color;     
-        for (var x=0; x < 100; x++){
-            for (var y=0; y < 100; y++){                
-                if(board[x][y]){
-                    var nbs = countAliveNeighbours(board, x, y);
-                    if(nbs==1){                            
-                        ctx.fillRect(x*10, y*10, 10, 10);                  
-                        treasureHiddenLimit--;                    
-                        if(treasureHiddenLimit===0)
-                            return;
+        while(true){
+            var x=Math.floor(Math.random()*100);
+            var y=Math.floor(Math.random()*100);
+            for (; x < 100; x++){
+                for (; y < 100; y++){                
+                    if(board[x][y]){
+                        var nbs = countAliveNeighbours(board, x, y);
+                        if(nbs==1){                            
+                            ctx.fillRect (x*10, y*10, 10, 10);                 
+                            treasureHiddenLimit--;                    
+                            if(treasureHiddenLimit===0)
+                                return;
+
+                            break;
+                        }
                     }
                 }
             }
-        }
+        }        
     }
-    
-    
 
 
-    
+
+
+
 
     var board = generateBoard();	
-    placeTreasure(board, "red", 5);
+    placeTreasure(board, "red", 2);
   </script>
 </html>
