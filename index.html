@@ -41,31 +41,8 @@
         for(var i=0; i<nextBoard.length; i++){
           for(var j=0; j<nextBoard[i].length; j++){            
 
-            //analize neighbour cells
-            var count=0;
-            if(board[i][j]==1)
-              nextBoard[i][j]=2;
-
-            for(var m=i-1; m<=i+1; m++){
-              for(var n=j-1; n<=j+1; n++){
-                if(m===i&&n===j){                  
-                  continue;
-                }
-
-                var row=m;
-                var col=n;
-                //we looking out of the array's bounds
-                if(m>=board.length||m<0)
-                  continue;
-              	//we looking out of the array's bounds
-                else if(n>=board[0].length||n<0)
-                  continue;
-
-                else if(board[row][col]>0){                                    
-                  count++;              
-                }
-              }
-            }  
+            var count=countAliveNeighbours(board, i, j);
+           
             //the cell is alive        
             if(board[i][j]){                
             	if(count<4)
@@ -87,6 +64,33 @@
           }
         }           
         return nextBoard;
+    }
+
+    //analize neighbour cells
+    function countAliveNeighbours(board, i, j){    
+        var count=0;        
+
+        for(var m=i-1; m<=i+1; m++){
+          for(var n=j-1; n<=j+1; n++){
+            if(m===i&&n===j){                  
+              continue;
+            }
+
+            var row=m;
+            var col=n;
+            //we looking out of the array's bounds
+            if(m>=board.length||m<0)
+              continue;
+            //we looking out of the array's bounds
+            else if(n>=board[0].length||n<0)
+              continue;
+
+            else if(board[row][col]>0){                                    
+              count++;              
+            }
+          }
+        }
+        return count;
     }
 
 	//flooding the array and remove all isolated areas
@@ -175,6 +179,7 @@
 		for(var x=0; x<100; x++){    					
     		for(var y=0; y<100; y++){
     			if(board[x][y]!=3){
+                    board[x][y]=0;
     				ctx.fillStyle = "#000";    	
     			}
     			else if(board[x][y]==3){
@@ -187,6 +192,29 @@
 		return board;
     }    
 
+    function placeTreasure(board, color, treasureHiddenLimit){                
+        ctx.fillStyle = color;     
+        for (var x=0; x < 100; x++){
+            for (var y=0; y < 100; y++){                
+                if(board[x][y]){
+                    var nbs = countAliveNeighbours(board, x, y);
+                    if(nbs==1){                            
+                        ctx.fillRect(x*10, y*10, 10, 10);                  
+                        treasureHiddenLimit--;                    
+                        if(treasureHiddenLimit===0)
+                            return;
+                    }
+                }
+            }
+        }
+    }
+    
+    
+
+
+    
+
     var board = generateBoard();	
+    placeTreasure(board, "red", 5);
   </script>
 </html>
